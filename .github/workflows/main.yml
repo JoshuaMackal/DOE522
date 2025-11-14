@@ -45,3 +45,27 @@ jobs:
         run: npm test
       - name: Lint
         run: npm run lint
+
+
+        5.4
+
+        name: CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to staging slot
+        run: az webapp deployment source config-zip --resource-group ${{ secrets.AZ_RG }} --name ${{ secrets.AZ_APP }} --slot staging --src ./artifact.zip
+      - name: Health check
+        run: curl -f https://${{ secrets.AZ_APP }}-staging.azurewebsites.net/health
+      - name: Swap slots (promote to production)
+        if: success()
+        run: az webapp deployment slot swap --name ${{ secrets.AZ_APP }} --resource-group ${{ secrets.AZ_RG }} --slot staging
+      - name: Rollback (manual trigger)
+        if: failure()
+        run: az webapp deployment slot swap --name ${{ secrets.AZ_APP }} --resource-group ${{ secrets.AZ_RG }} --slot staging
