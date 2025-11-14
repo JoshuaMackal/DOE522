@@ -1,2 +1,112 @@
-# DOE522
-FA1
+# DOE522 Summative Assessment
+#Clone repo
+git clone https://github.com/your-prg/quickshop.git
+(cd quickshop)
+# QuickShop Web Application
+# install dependencies
+(npm install)
+## Build & Run
+1 - (npm run build)
+2- (npm start)
+
+
+**main.bicep**
+```bicep
+param environment string = 'staging'
+param location string = resourceGroup().location
+
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
+  name: 'quickshop-asp-${environment}'
+  location: location
+  sku: {
+    name: 'B1'
+    tier: 'Basic'
+  }
+}
+
+resource webApp 'Microsoft.Web/sites@2021-02-01' = {
+  name: 'quickshop-web-${environment}'
+  location: location
+  properties: {
+    serverFarmId: appServicePlan.id
+
+az deployment group create --resource-group <rg> --template-file main.bicep --parameters environment=staging
+az deployment group create --resource-group <rg> --template-file main.bicep --parameters environment=production
+
+5.3
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run unit tests
+        run: npm test
+      - name: Lint
+        run: npm run lint
+
+5.4
+name: CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to staging slot
+        run: az webapp deployment source config-zip --resource-group ${{ secrets.AZ_RG }} --name ${{ secrets.AZ_APP }} --slot staging --src ./artifact.zip
+      - name: Health check
+        run: curl -f https://${{ secrets.AZ_APP }}-staging.azurewebsites.net/health
+      - name: Swap slots (promote to production)
+        if: success()
+        run: az webapp deployment slot swap --name ${{ secrets.AZ_APP }} --resource-group ${{ secrets.AZ_RG }} --slot staging
+      - name: Rollback (manual trigger)
+        if: failure()
+        run: az webapp deployment slot swap --name ${{ secrets.AZ_APP }} --resource-group ${{ secrets.AZ_RG }} --slot staging
+
+5.5
+- name: Dependency Scan
+  uses: actions/dependency-review-action@v3
+- name: Secret Scan
+  uses: github/codeql-action/analyze@v2
+
+5.6
+{
+  "alertName": "High Error Rate",
+  "metric": "Error Rate",
+  "threshold": 5,
+  "action": "Notify DevOps Team"
+}
+
+5.6 Monitoring & Blameless Retrospective
+Metrics to Monitor
+
+Error Rate: Alerts if error rate exceeds threshold.
+Response Time: Alerts if latency increases.
+
+Sample Dashboard Screenshot
+(Insert screenshot of Azure Application Insights or Grafana showing error rate and response time)
+Alert Configuration Example
+JSON{  "alertName": "High Error Rate",  "metric": "Error Rate",  "threshold": 5,  "action": "Notify DevOps Team"}Show more lines
+Blameless Retrospective Plan
+
+Gather the team after incidents.
+Focus on process and system improvements, not individual blame.
+Document what happened, why, and how to prevent recurrence.
+Share learnings openly.
+  }
+}
