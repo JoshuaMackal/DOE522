@@ -69,3 +69,11 @@ jobs:
       - name: Rollback (manual trigger)
         if: failure()
         run: az webapp deployment slot swap --name ${{ secrets.AZ_APP }} --resource-group ${{ secrets.AZ_RG }} --slot staging
+
+
+5.5
+
+- name: Dependency Scan
+  uses: actions/dependency-review-action@v3
+- name: Secret Scan
+  uses: github/codeql-action/analyze@v2
