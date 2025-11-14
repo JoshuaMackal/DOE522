@@ -1,29 +1,22 @@
-name: CI/CD Pipeline
+**main.bicep**
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+param environment string = 'staging'
+param location string = resourceGroup().location
 
-jobs:
-  build-test-deploy:
-    runs-on: ubuntu-latest
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
+  name: 'quickshop-asp-${environment}'
+  location: location
+  sku: {
+    name: 'B1'
+    tier: 'Basic'
+  }
+}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+resource webApp 'Microsoft.Web/sites@2021-02-01' = {
+  name: 'quickshop-web-${environment}'
+  location: location
+  properties: {
+    serverFarmId: appServicePlan.id
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Deploy
-        run: echo "Deploying application..."
+az deployment group create --resource-group <rg> --template-file main.bicep --parameters environment=staging
+az deployment group create --resource-group <rg> --template-file main.bicep --parameters environment=production
