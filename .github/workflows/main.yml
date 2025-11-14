@@ -77,3 +77,25 @@ jobs:
   uses: actions/dependency-review-action@v3
 - name: Secret Scan
   uses: github/codeql-action/analyze@v2
+
+
+  5.6
+
+  5.6 Monitoring & Blameless Retrospective
+Metrics to Monitor
+
+Error Rate: Alerts if error rate exceeds threshold.
+Response Time: Alerts if latency increases.
+
+Sample Dashboard Screenshot
+(Insert screenshot of Azure Application Insights or Grafana showing error rate and response time)
+Alert Configuration Example
+JSON{  "alertName": "High Error Rate",  "metric": "Error Rate",  "threshold": 5,  "action": "Notify DevOps Team"}Show more lines
+Blameless Retrospective Plan
+
+Gather the team after incidents.
+Focus on process and system improvements, not individual blame.
+Document what happened, why, and how to prevent recurrence.
+Share learnings openly.
+  }
+}
